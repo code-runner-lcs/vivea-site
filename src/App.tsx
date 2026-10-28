@@ -104,18 +104,19 @@ export default function App() {
     // (Show remonte le DOM : les nouveaux éléments ne sont pas encore observés)
     queueMicrotask(observeReveals);
 
-    if (r.page === "home") {
-      if (r.anchor) {
-        const a = r.anchor;
-        const go = () =>
-          (document.getElementById(a) as HTMLElement | null)?.scrollIntoView({
-            block: "start",
-          });
-        queueMicrotask(go);
-        setTimeout(go, 80); // filet de sécurité si le DOM n'est pas encore peint
-      } else if (prevPage !== null && prevPage !== "home") {
-        window.scrollTo({ top: 0 });
-      }
+    // Page ≠ tab : on ne scrolle QUE sur un vrai changement de page,
+    // jamais au 1er rendu (prevPage null) ni sur un simple switch d'onglet.
+    if (r.page === "home" && r.anchor) {
+      const a = r.anchor;
+      const go = () =>
+        (document.getElementById(a) as HTMLElement | null)?.scrollIntoView({
+          block: "start",
+        });
+      queueMicrotask(go);
+      setTimeout(go, 80); // filet de sécurité si le DOM n'est pas encore peint
+    } else if (prevPage !== null && prevPage !== r.page) {
+      // behavior instant : scroll-behavior smooth sur html animerait le retour
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
     prevPage = r.page;
   });
